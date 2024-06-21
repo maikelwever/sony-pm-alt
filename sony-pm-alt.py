@@ -3,6 +3,7 @@ import socket, struct, time, socketserver, re, subprocess, sys, logging, logging
 import _thread, requests, os
 from threading import Thread
 from shutil import move
+from urllib.parse import urlparse
 
 #  install pip and requests if missing:
 #  sudo apt-get install python-pip
@@ -157,11 +158,12 @@ class Responder(Thread):
                L.warn("Connection Error")
             else:
               L.debug("Got XML - verify if our camera")
+              url_parts = urlparse(searchObj.group(1))
               if "Sony Corporation" in r.content.decode('UTF-8'):
                 L.debug("Camera Found...starting gphoto")
-                ValidateUpdateSettings(GPHOTO_SETTINGS, addr[0], PTP_GUID)
+                ValidateUpdateSettings(GPHOTO_SETTINGS, url_parts.hostname, PTP_GUID)
                 gphoto_cmd = [GPHOTO_CMD,
-                              "--port", "ptpip:{}".format(addr[0])] + \
+                              "--port", "ptpip:{}".format(url_parts.hostname)] + \
                              GPHOTO_ARGS
                 L.debug("Executing: {}".format(gphoto_cmd))
                 PROC = subprocess.Popen(gphoto_cmd)
